@@ -1,0 +1,406 @@
+/*==================================================
+                CURSO
+==================================================*/
+
+.back{
+
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+
+    text-decoration:none;
+
+    color:#64748B;
+
+    margin-bottom:25px;
+
+    font-weight:500;
+
+    transition:.3s;
+
+}
+
+.back:hover{
+
+    color:#2FB8B5;
+
+}
+
+.course-header{
+
+    background:#FFFFFF;
+
+    border-radius:20px;
+
+    padding:35px;
+
+    border:1px solid #E5E7EB;
+
+    margin-bottom:40px;
+
+}
+
+.course-header h1{
+
+    font-size:40px;
+
+    color:#111827;
+
+    margin-bottom:12px;
+
+}
+
+.course-header p{
+
+    color:#64748B;
+
+    line-height:1.8;
+
+    max-width:700px;
+
+    margin-bottom:20px;
+
+}
+
+.course-header span{
+
+    color:#2FB8B5;
+
+    font-weight:600;
+
+}
+
+/*==================================================
+                TIMELINE
+==================================================*/
+
+.timeline{
+
+    position:relative;
+
+    margin-left:20px;
+
+}
+
+.timeline::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    left:20px;
+
+    width:3px;
+
+    height:100%;
+
+    background:#E5E7EB;
+
+}
+
+.module{
+
+    position:relative;
+
+    display:flex;
+
+    gap:25px;
+
+    margin-bottom:35px;
+
+}
+
+.module-icon{
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    flex-shrink:0;
+
+    z-index:2;
+
+}
+
+.completed .module-icon{
+
+    background:#DCFCE7;
+
+    color:#16A34A;
+
+}
+
+.active .module-icon{
+
+    background:#DBEAFE;
+
+    color:#2563EB;
+
+}
+
+.locked .module-icon{
+
+    background:#F3F4F6;
+
+    color:#9CA3AF;
+
+}
+
+.module-content{
+
+    flex:1;
+
+    background:#FFFFFF;
+
+    border:1px solid #E5E7EB;
+
+    border-radius:18px;
+
+    padding:25px;
+
+    box-shadow:0 8px 24px rgba(0,0,0,.05);
+
+    transition:.3s;
+
+}
+
+.module-content:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:0 15px 35px rgba(15,23,42,.08);
+
+}
+
+.module-content h3{
+
+    font-size:22px;
+
+    margin-bottom:8px;
+
+    color:#111827;
+
+}
+
+.module-content p{
+
+    color:#6B7280;
+
+    line-height:1.7;
+
+    margin-bottom:20px;
+
+}
+/*==================================================
+                CURSO
+==================================================*/
+
+.back{
+
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+
+    text-decoration:none;
+
+    color:#64748B;
+
+    margin-bottom:25px;
+
+    font-weight:500;
+
+    transition:.3s;
+
+}
+
+.back:hover{
+
+    color:#2FB8B5;
+
+}
+
+.course-header{
+
+    background:#FFFFFF;
+
+    border-radius:20px;
+
+    padding:35px;
+
+    border:1px solid #E5E7EB;
+
+    margin-bottom:40px;
+
+}
+
+.course-header h1{
+
+    font-size:40px;
+
+    color:#111827;
+
+    margin-bottom:12px;
+
+}
+
+.course-header p{
+
+    color:#64748B;
+
+    line-height:1.8;
+
+    max-width:700px;
+
+    margin-bottom:20px;
+
+}
+
+.course-header span{
+
+    color:#2FB8B5;
+
+    font-weight:600;
+
+}
+
+/*==================================================
+                TIMELINE
+==================================================*/
+
+.timeline{
+
+    position:relative;
+
+    margin-left:20px;
+
+}
+
+.timeline::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    left:20px;
+
+    width:3px;
+
+    height:100%;
+
+    background:#E5E7EB;
+
+}
+
+.module{
+
+    position:relative;
+
+    display:flex;
+
+    gap:25px;
+
+    margin-bottom:35px;
+
+}
+
+.module-icon{
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    flex-shrink:0;
+
+    z-index:2;
+
+}
+
+.completed .module-icon{
+
+    background:#DCFCE7;
+
+    color:#16A34A;
+
+}
+
+.active .module-icon{
+
+    background:#DBEAFE;
+
+    color:#2563EB;
+
+}
+
+.locked .module-icon{
+
+    background:#F3F4F6;
+
+    color:#9CA3AF;
+
+}
+
+.module-content{
+
+    flex:1;
+
+    background:#FFFFFF;
+
+    border:1px solid #E5E7EB;
+
+    border-radius:18px;
+
+    padding:25px;
+
+    box-shadow:0 8px 24px rgba(0,0,0,.05);
+
+    transition:.3s;
+
+}
+
+.module-content:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:0 15px 35px rgba(15,23,42,.08);
+
+}
+
+.module-content h3{
+
+    font-size:22px;
+
+    margin-bottom:8px;
+
+    color:#111827;
+
+}
+
+.module-content p{
+
+    color:#6B7280;
+
+    line-height:1.7;
+
+    margin-bottom:20px;
+
+}

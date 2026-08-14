@@ -1,0 +1,61 @@
+/*=========================
+        VARIABLES
+==========================*/
+
+:root{
+
+    --primary:#2FB8B5;
+
+    --primary-dark:#249C99;
+
+    --background:#F8FAFC;
+
+    --white:#FFFFFF;
+
+    --text:#1F2937;
+
+    --gray:#64748B;
+
+    --border:#E5E7EB;
+
+    --success:#22C55E;
+
+    --danger:#EF4444;
+
+    --radius:18px;
+
+    --shadow:0 10px 30px rgba(0,0,0,.08);
+
+    --transition:.30s;
+
+}
+
+/*=========================
+        RESET
+==========================*/
+
+*{
+
+    margin:0;
+
+    padding:0;
+
+    box-sizing:border-box;
+
+}
+
+html{
+
+    scroll-behavior:smooth;
+
+}
+
+body{
+
+    font-family:'Poppins',sans-serif;
+
+    background:var(--background);
+
+    color:var(--text);
+
+}
