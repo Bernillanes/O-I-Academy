@@ -266,29 +266,17 @@
 
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="valueGroup">
 
                 <label id="secondFieldLabel">
             
-                    URL
+                    Archivo
             
                 </label>
             
                 <input
                     id="contentValue"
-                    type="text"
-                    placeholder="">
-            
-            </div>
-            
-            <div class="form-group" id="durationGroup">
-            
-                <label>Duración</label>
-            
-                <input
-                    id="contentDuration"
-                    type="text"
-                    placeholder="Ej. 12:35">
+                    type="file">
             
             </div>
             
@@ -328,9 +316,98 @@
     </div>
 
 </div>
+<div id="questionModal" class="modal">
 
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Administrar preguntas</h2>
+
+            <button id="closeQuestionModal">
+
+                <i class="bi bi-x-lg"></i>
+
+            </button>
+
+        </div>
+
+        <div class="modal-body">
+
+            <div class="question-layout">
+        
+                <aside class="question-sidebar">
+
+                    <h3>Preguntas</h3>
+                
+                    <button
+                        id="newQuestion"
+                        class="btn-save">
+                
+                        <i class="bi bi-plus-circle-fill"></i>
+                
+                        Nueva pregunta
+                
+                    </button>
+                
+                    <div id="questionsList"></div>
+                
+                </aside>
+        
+                <section class="question-editor">
+        
+                    <div class="form-group">
+        
+                        <label>Tipo de pregunta</label>
+        
+                        <select id="questionType">
+        
+                            <option value="multiple">Opción múltiple</option>
+                            <option value="boolean">Verdadero / Falso</option>
+                            <option value="text">Respuesta abierta</option>
+                            <option value="checkbox">Selección múltiple</option>
+                            <option value="order">Ordenar pasos</option>
+                            <option value="match">Relacionar columnas</option>
+                            <option value="complete">Completar espacios</option>
+        
+                        </select>
+        
+                    </div>
+        
+                    <div id="questionEditor">
+        
+                    </div>
+        
+                </section>
+        
+            </div>
+        
+        </div>
+
+        <div class="form-buttons">
+
+            <button
+                id="cancelQuestion"
+                class="btn-cancel">
+
+                Cancelar
+
+            </button>
+
+            <button
+                id="saveQuestion"
+                class="btn-save">
+
+                Guardar pregunta
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 <script src="js/course-editor.js"></script>
-
 </body>
 
 </html>
