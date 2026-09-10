@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>O-I Academy | Evaluación</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="stylesheet" href="css/admin.css">
+
+    <link rel="stylesheet" href="css/quiz-player.css">
+
+</head>
+
+<body>
+
+    <main class="quiz-page">
+
+        <div class="editor-container">
+
+            <div class="topbar">
+
+                <img
+                    src="assets/OI_Academy_transparente.png"
+                    class="quiz-logo">
+            
+            </div>
+
+            <header class="quiz-header">
+          
+                <h1>Evaluación de Seguridad</h1>
+            
+                <p id="quizProgress">
+            
+                    Pregunta 1 de 10
+            
+                </p>
+            
+                <div class="progress">
+            
+                    <div
+                        class="progress-bar"
+                        id="progressBar"></div>
+            
+                </div>
+            
+            </header>
+            <div id="resultView" class="result-view" style="display:none;">
+
+                <div class="result-icon">
+                    ✓
+                </div>
+            
+                <p class="result-label">
+                    EVALUACIÓN COMPLETADA
+                </p>
+            
+                <h2>¡Evaluación finalizada!</h2>
+            
+                <p class="result-message" id="resultMessage">
+                    Has completado la evaluación.
+                </p>
+            
+                <div class="result-score">
+            
+                    <strong id="resultPercentage">0%</strong>
+            
+                    <span id="resultCorrect">
+                        0 de 0 respuestas correctas
+                    </span>
+            
+                </div>
+            
+                <button
+                    id="continueCourse"
+                    class="btn-primary">
+            
+                    Continuar curso →
+            
+                </button>
+            
+            </div>
+            <div class="question-view">
+
+                <h2 id="questionTitle">
+
+                    Cargando...
+
+                </h2>
+
+                <div id="answersContainer">
+
+                </div>
+
+            </div>
+
+            <div class="toolbar">
+
+    <button
+        id="previousQuestion"
+        class="btn-secondary">
+
+        ← Anterior
+
+    </button>
+
+    <span id="counter">
+
+        1 / 10
+
+    </span>
+
+    <button
+        id="nextQuestion"
+        class="btn-primary">
+
+        Siguiente →
+
+    </button>
+
+</div>
+
+        </div>
+
+    </main>
+
+    <script src="js/quiz-player.js"></script>
+
+</body>
+
+</html>

@@ -354,7 +354,9 @@ document.querySelector(".btn-cancel").addEventListener("click", () => {
 });
 document.getElementById("questionType").addEventListener("change",(e)=>{
 
-    if(editingQuestion === null) return;
+    if(editingQuestion===null) return;
+
+    saveCurrentQuestion();
 
     questions[editingQuestion].type = e.target.value;
 
@@ -565,7 +567,7 @@ if(openQuiz){
     currentQuiz = currentModule.quizzes.find(q => q.id === id);
     if(!currentQuiz) return;
     renderQuestionEditor("multiple");
-    questions = currentQuiz.questions || [];
+    questions = [...(currentQuiz.questions || [])];
     editingQuestion = null;
     renderQuestionsList();
     questionModal.classList.add("active");
@@ -720,20 +722,16 @@ document.getElementById("saveContent").addEventListener("click",()=>{
             editingContent = null;
         
         }else{
-        
-            currentModule[currentType].push({
-        
+      
+            const newContent = {
                 id: Date.now(),
-        
                 name: name,
-        
                 description: description,
-        
                 file: file ? file.name : "",
-
                 questions: []
-        
-            });
+            };
+            
+            currentModule[currentType].push(newContent);
         
         }
 
@@ -766,37 +764,20 @@ function renderQuestionEditor(type){
 
             </div>
 
-            <div class="form-group">
+<div id="optionsContainer">
 
-                <label>Opción A</label>
+</div>
 
-                <input type="text" id="optionA">
+<button
+    type="button"
+    id="addOption"
+    class="btn-save">
 
-            </div>
+    <i class="bi bi-plus-circle-fill"></i>
 
-            <div class="form-group">
+    Agregar opción
 
-                <label>Opción B</label>
-
-                <input type="text" id="optionB">
-
-            </div>
-
-            <div class="form-group">
-
-                <label>Opción C</label>
-
-                <input type="text" id="optionC">
-
-            </div>
-
-            <div class="form-group">
-
-                <label>Opción D</label>
-
-                <input type="text" id="optionD">
-
-            </div>
+</button>
 
             <div class="form-group">
 
@@ -1069,7 +1050,13 @@ function renderQuestionsList(){
 
         <div>
 
-            <strong>Pregunta ${index+1}</strong>
+<strong>
+
+    ${question.question && question.question.trim() !== ""
+        ? question.question
+        : `Nueva pregunta ${index+1}`}
+
+</strong>
 
             <div class="question-type">
 
@@ -1117,7 +1104,24 @@ document.getElementById("newQuestion").addEventListener("click",()=>{
     loadQuestion();
 
 });
+
 document.addEventListener("click",(e)=>{
+
+    const deleteQuestion = e.target.closest(".delete-question");
+
+if(deleteQuestion){
+
+    const index = Number(deleteQuestion.dataset.index);
+
+    questions.splice(index,1);
+
+    editingQuestion = null;
+
+    renderQuestionsList();
+
+    return;
+
+}
 
     const card = e.target.closest(".question-card");
 
@@ -1142,25 +1146,87 @@ function loadQuestion(){
 
     renderQuestionEditor(q.type);
 
-    const question =
-        document.getElementById("questionText");
+    const question = document.getElementById("questionText");
 
     if(question){
 
-        question.value = q.question;
+        question.value = q.question || "";
 
     }
 
-    if(q.type==="multiple"){
+    switch(q.type){
 
-        optionA.value = q.options[0];
-        optionB.value = q.options[1];
-        optionC.value = q.options[2];
-        optionD.value = q.options[3];
+        case "multiple":
 
-        correctAnswer.value = q.answer;
+        renderOptions();
+    
+        correctAnswer.value = q.answer || "A";
+    
+        break;
 
+        case "boolean":
+
+            correctAnswer.value = q.answer || "true";
+
+            break;
+
+        case "text":
+
+            expectedAnswer.value = q.answer || "";
+
+            break;
     }
+    attachQuestionEvents();
+    renderOptions();
+
+}
+
+function attachQuestionEvents(){
+
+    const question = document.getElementById("questionText");
+
+    if(!question) return;
+
+    question.addEventListener("input",()=>{
+
+        if(editingQuestion===null) return;
+
+        questions[editingQuestion].question = question.value;
+
+        renderQuestionsList();
+
+    });
+
+}
+function renderOptions(){
+
+    const container = document.getElementById("optionsContainer");
+
+    if(!container || editingQuestion===null) return;
+
+    const q = questions[editingQuestion];
+
+    container.innerHTML = "";
+
+    q.options.forEach((option,index)=>{
+
+        container.innerHTML += `
+
+            <div class="form-group">
+
+                <label>Opción ${index+1}</label>
+
+                <input
+                    type="text"
+                    class="option-input"
+                    data-index="${index}"
+                    value="${option}">
+
+            </div>
+
+        `;
+
+    });
 
 }
 function saveCurrentQuestion(){
@@ -1169,8 +1235,7 @@ function saveCurrentQuestion(){
 
     const q = questions[editingQuestion];
 
-    const question =
-        document.getElementById("questionText");
+    const question = document.getElementById("questionText");
 
     if(question){
 
@@ -1178,18 +1243,63 @@ function saveCurrentQuestion(){
 
     }
 
-    if(q.type==="multiple"){
+    switch(q.type){
 
-        q.options[0] = optionA.value;
-
-        q.options[1] = optionB.value;
-
-        q.options[2] = optionC.value;
-
-        q.options[3] = optionD.value;
+        case "multiple":
 
         q.answer = correctAnswer.value;
+    
+        break;
+
+        case "boolean":
+
+            q.answer = correctAnswer.value;
+
+            break;
+
+        case "text":
+
+            q.answer = expectedAnswer.value;
+
+            break;
 
     }
 
 }
+document.addEventListener("click",(e)=>{
+
+    if(e.target.id==="addOption"){
+
+        questions[editingQuestion].options.push("");
+
+        renderOptions();
+
+    }
+
+});
+document.addEventListener("input",(e)=>{
+
+    if(!e.target.classList.contains("option-input")) return;
+
+    const index = Number(e.target.dataset.index);
+
+    questions[editingQuestion].options[index] = e.target.value;
+
+});
+document.getElementById("saveQuestion").addEventListener("click",()=>{
+
+    if(!currentQuiz) return;
+
+    saveCurrentQuestion();
+
+    currentQuiz.questions = [...questions];
+
+    localStorage.setItem("oiQuiz", JSON.stringify(currentQuiz));
+
+    alert("Cuestionario guardado correctamente.");
+
+    questionModal.classList.remove("active");
+
+    renderModules();
+
+});

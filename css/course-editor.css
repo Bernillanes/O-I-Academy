@@ -1244,3 +1244,42 @@
     border-top:1px solid #E2E8F0;
 
 }
+.question-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+}
+
+.question-type{
+
+    margin-top:6px;
+
+    font-size:13px;
+
+    color:#64748B;
+
+}
+
+.delete-question{
+
+    border:none;
+
+    background:none;
+
+    cursor:pointer;
+
+    color:#94A3B8;
+
+    font-size:16px;
+
+}
+
+.delete-question:hover{
+
+    color:#EF4444;
+
+}
