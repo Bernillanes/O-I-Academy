@@ -24,6 +24,8 @@
 
 </head>
 
+<script src="student-courses.js"></script>
+
 <body>
 
 <div class="container">
@@ -114,13 +116,30 @@
 
         <section class="filters">
 
-            <button class="active">Todos</button>
+            <button
+    class="active"
+    data-filter="all"
+>
+    Todos
+</button>
 
-            <button>Pendientes</button>
+<button
+    data-filter="pending"
+>
+    Pendientes
+</button>
 
-            <button>En progreso</button>
+<button
+    data-filter="progress"
+>
+    En progreso
+</button>
 
-            <button>Completados</button>
+<button
+    data-filter="completed"
+>
+    Completados
+</button>
 
         </section>
 

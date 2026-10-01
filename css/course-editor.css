@@ -652,18 +652,13 @@
 =========================================*/
 
 .module-title span{
-
-    display:block;
-
+    display:inline-block;
     margin-top:8px;
-
     color:#64748B;
-
-    font-size:15px;
-
-    font-weight:500;
-
+    font-size:32px;
+    font-weight:600;
 }
+
 
 .module-grid{
 
@@ -1281,5 +1276,231 @@
 .delete-question:hover{
 
     color:#EF4444;
+
+}
+/* =====================================
+   AJUSTES FINALES DE DISEÑO
+===================================== */
+
+.content-card .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.content-card .card-header h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.content-card .content-btn,
+.content-card .card-action {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.content-card .content-btn i,
+.content-card .card-action i {
+    margin: 0;
+    font-size: 16px;
+}
+.module-title{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.module-title > i{
+    font-size:20px;
+    flex-shrink:0;
+}
+/* =====================================
+   DISEÑO DEL EDITOR DE PREGUNTAS
+===================================== */
+
+#questionModal .question-card {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    padding: 16px;
+}
+
+#questionModal .question-card.active {
+    background: #E6FFFB;
+    border-color: #2FB8B5;
+}
+
+#questionModal textarea,
+#questionModal input[type="text"],
+#questionModal select {
+    box-sizing: border-box;
+}
+
+#questionModal #questionEditor {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 18px;
+    padding: 25px;
+}
+
+#questionModal #questionEditor .form-group:last-child {
+    margin-bottom: 0;
+}
+
+#questionModal .question-sidebar h3 {
+    font-size: 22px;
+    margin-bottom: 18px;
+}
+
+#questionModal .question-sidebar {
+    min-width: 0;
+}
+
+#questionModal .question-editor {
+    min-width: 0;
+}
+
+#questionModal .delete-question {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+}
+
+#questionModal .delete-question:hover {
+    background: #FEE2E2;
+}
+
+#questionModal .form-buttons {
+    flex-shrink: 0;
+}
+/* =========================================
+   ORDENAR PASOS
+========================================= */
+
+.order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.order-list .answer-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.order-list button {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #D7E0E4;
+    border-radius: 8px;
+    background: white;
+    color: #344054;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.order-list button:hover {
+    border-color: #2CBEC2;
+    color: #218F93;
+}
+
+
+/* =========================================
+   RELACIONAR COLUMNAS
+========================================= */
+
+#answersContainer select {
+    min-width: 220px;
+    padding: 11px 14px;
+    border: 1px solid #D7E0E4;
+    border-radius: 10px;
+    background: white;
+    color: #344054;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    outline: none;
+}
+
+#answersContainer select:focus {
+    border-color: #2CBEC2;
+}
+
+
+/* =========================================
+   RESPUESTAS DE TEXTO
+========================================= */
+
+.quiz-text-answer {
+    width: 100%;
+    min-height: 52px;
+    padding: 14px 16px;
+    border: 1px solid #D7E0E4;
+    border-radius: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    outline: none;
+    resize: vertical;
+}
+
+.quiz-text-answer:focus {
+    border-color: #2CBEC2;
+    box-shadow: 0 0 0 3px rgba(44,190,194,.10);
+}
+
+
+/* =========================================
+   RESULTADO
+========================================= */
+
+.result-view {
+    max-width: 650px;
+    margin: 40px auto;
+    padding: 55px 45px;
+    background: white;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 12px 35px rgba(15,23,42,.08);
+}
+
+.result-view h2 {
+    margin-bottom: 12px;
+    color: #0F172A;
+    font-size: 30px;
+}
+
+.result-message {
+    margin-bottom: 30px;
+    color: #64748B;
+    font-size: 16px;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media(max-width:700px) {
+
+    .order-list .answer-item {
+        align-items: flex-start;
+    }
+
+    #answersContainer select {
+        min-width: 150px;
+        width: 100%;
+    }
+
+    .result-view {
+        padding: 40px 25px;
+    }
 
 }

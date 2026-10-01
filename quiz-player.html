@@ -38,12 +38,16 @@
                     src="assets/OI_Academy_transparente.png"
                     class="quiz-logo">
             
+                <button id="backToPlatform" class="topbar-back">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Volver a cursos</span>
+                </button>
+            
             </div>
 
             <header class="quiz-header">
           
-                <h1>Evaluación de Seguridad</h1>
-            
+                <h1 id="quizTitle">Cargando...</h1>            
                 <p id="quizProgress">
             
                     Pregunta 1 de 10
@@ -62,7 +66,7 @@
             <div id="resultView" class="result-view" style="display:none;">
 
                 <div class="result-icon">
-                    ✓
+                    <i class="bi bi-check-lg"></i>
                 </div>
             
                 <p class="result-label">
@@ -71,13 +75,15 @@
             
                 <h2>¡Evaluación finalizada!</h2>
             
-                <p class="result-message" id="resultMessage">
-                    Has completado la evaluación.
+                <p class="result-subtitle">
+                    Este es tu resultado
                 </p>
             
                 <div class="result-score">
             
-                    <strong id="resultPercentage">0%</strong>
+                    <strong id="resultPercentage">
+                        0%
+                    </strong>
             
                     <span id="resultCorrect">
                         0 de 0 respuestas correctas
@@ -85,11 +91,23 @@
             
                 </div>
             
+                <div class="result-message-box">
+            
+                    <i class="bi bi-info-circle-fill"></i>
+            
+                    <p id="resultMessage">
+                        Has completado la evaluación.
+                    </p>
+            
+                </div>
+            
                 <button
                     id="continueCourse"
-                    class="btn-primary">
+                    class="result-button">
             
-                    Continuar curso →
+                    Volver al curso
+            
+                    <i class="bi bi-arrow-right"></i>
             
                 </button>
             

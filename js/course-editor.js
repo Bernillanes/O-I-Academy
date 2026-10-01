@@ -1,7 +1,3 @@
-const params = new URLSearchParams(window.location.search);
-
-const courseId = Number(params.get("id"));
-
 const courses = [
     {
         id: 1,
@@ -20,7 +16,15 @@ const courses = [
     }
 ];
 
-const modules = [
+const params = new URLSearchParams(window.location.search);
+const courseId = Number(params.get("id"));
+
+const course = courses.find(c => c.id === courseId) || courses[0];
+
+document.getElementById("courseTitle").textContent = course.name;
+document.getElementById("courseSubtitle").textContent = course.description;
+
+const defaultModules = [
     {
         id: 1,
         courseId: 1,
@@ -35,150 +39,247 @@ const modules = [
         courseId: 1,
         title: "Equipo de Protección Personal",
         videos: [
-            "Video 1",
-            "Video 2",
-            "Video 3"
+            { id: 101, name: "Video 1", description: "", file: "" },
+            { id: 102, name: "Video 2", description: "", file: "" },
+            { id: 103, name: "Video 3", description: "", file: "" }
         ],
         documents: [
-            "Manual.pdf",
-            "Norma.pdf"
+            { id: 201, name: "Manual.pdf", description: "", file: "Manual.pdf" },
+            { id: 202, name: "Norma.pdf", description: "", file: "Norma.pdf" }
         ],
         quizzes: [
-            "Evaluación"
+            {
+                id: 301,
+                name: "Evaluación",
+                description: "",
+                questions: []
+            }
         ],
         expanded: false
     }
 ];
 
-const course = courses.find(c => c.id === courseId);
+const savedModules = JSON.parse(
+    localStorage.getItem("oiModules")
+);
 
-if (course) {
-    document.getElementById("courseTitle").textContent = course.name;
-    document.getElementById("courseSubtitle").textContent = course.description;
+const modules = Array.isArray(savedModules)
+    ? savedModules
+    : defaultModules;
+
+function saveModules() {
+    localStorage.setItem(
+        "oiModules",
+        JSON.stringify(modules)
+    );
 }
-function renderContentItems(items, icon){
 
-    if(items.length===0){
+const modal =
+    document.getElementById("moduleModal");
 
-        return `<div class="empty-text">Sin elementos</div>`;
+const contentModal =
+    document.getElementById("contentModal");
 
+const contentModalTitle =
+    document.getElementById("contentModalTitle");
+
+const secondFieldLabel =
+    document.getElementById("secondFieldLabel");
+
+const contentName =
+    document.getElementById("contentName");
+
+const contentValue =
+    document.getElementById("contentValue");
+
+const questionModal =
+    document.getElementById("questionModal");
+
+const closeQuestionModal =
+    document.getElementById("closeQuestionModal");
+
+const cancelQuestion =
+    document.getElementById("cancelQuestion");
+
+let currentModule = null;
+let currentType = null;
+let editingContent = null;
+let editingModule = null;
+let currentQuiz = null;
+let editingQuestion = null;
+let questions = [];
+
+function renderContentItems(
+    items,
+    icon,
+    type
+) {
+
+    if (!items || items.length === 0) {
+
+        return `
+            <div class="empty-text">
+                No hay contenido agregado.
+            </div>
+        `;
     }
 
-    return items.map(item=>`
+    return items.map(item => {
 
-        <div class="content-item" data-id="${item.id}">
+        if (typeof item === "string") {
 
-            <div class="content-info content-open" data-id="${item.id}">
+            item = {
+                id: "",
+                name: item,
+                description: "",
+                file: ""
+            };
+        }
 
-<div
-    class="content-name ${icon === "bi bi-patch-question-fill" ? "open-quiz" : ""}"
-    data-id="${item.id}">
+        return `
+            <div class="content-item">
 
-    <i class="${icon}"></i>
+                <div
+                    class="content-info content-open"
+                    data-id="${item.id}"
+                    data-type="${type}"
+                    style="cursor:pointer;"
+                >
 
-    ${item.name}
+                    <div>
 
-</div>
+                        <div class="content-name">
 
-                <div class="content-description">
+                            <i class="${icon}"></i>
 
-                    ${item.description || "Sin descripción"}
+                            ${item.name || "Sin nombre"}
+
+                        </div>
+
+                        ${
+                            item.description
+                                ? `
+                                    <div class="content-description">
+                                        ${item.description}
+                                    </div>
+                                  `
+                                : ""
+                        }
+
+                        ${
+                            item.file
+                                ? `
+                                    <div class="content-file">
+                                        ${item.fileName || "Documento PDF"}
+                                    </div>
+                                  `
+                                : ""
+                        }
+
+                    </div>
 
                 </div>
-
-                <div class="content-file">
-
-                    ${item.file || ""}
-
-                </div>
-
-            </div>
-
-            <div class="content-actions">
-
-                <button
-    class="mini-btn edit-content"
-    data-id="${item.id}">
-
-                    <i class="bi bi-pencil-fill"></i>
-
-                </button>
-
-                <button
-    class="mini-btn delete delete-content"
-    data-id="${item.id}">
-
-                    <i class="bi bi-trash-fill"></i>
-
-                </button>
-
-            </div>
-
-        </div>
-
-    `).join("");
-
+                ${
+    type === "quizzes"
+        ? `
+            <button
+                class="mini-btn open-quiz-player"
+                data-id="${item.id}"
+                data-type="${type}"
+                title="Ver cuestionario"
+            >
+                <i class="bi bi-play-fill"></i>
+            </button>
+        `
+        : ""
 }
 
-function renderModules() {
+                <div class="content-actions">
 
-    const container = document.getElementById("modulesContainer");
+                    <button
+                        class="mini-btn edit-content"
+                        data-id="${item.id}"
+                        data-type="${type}"
+                    >
 
-    const courseModules = modules.filter(module => module.courseId === courseId);
+                        <i class="bi bi-pencil-fill"></i>
 
-    if (courseModules.length === 0) {
+                    </button>
 
-        container.innerHTML = `
-            <div class="empty-state">
+                    <button
+                        class="mini-btn delete delete-content"
+                        data-id="${item.id}"
+                        data-type="${type}"
+                    >
 
-                <i class="bi bi-journal-bookmark"></i>
+                        <i class="bi bi-trash-fill"></i>
 
-                <h3>No hay módulos</h3>
+                    </button>
 
-                <p>Crea el primer módulo del curso.</p>
+                </div>
 
             </div>
         `;
 
-        return;
+    }).join("");
+}
 
-    }
+function renderModules() {
 
-    container.innerHTML = courseModules.map(module => `
+    const container =
+        document.getElementById("modulesContainer");
 
-        <div class="module-card" data-id="${module.id}">
+    container.innerHTML = "";
+
+    const courseModules =
+        modules.filter(
+            m => m.courseId === courseId
+        );
+
+    courseModules.forEach(module => {
+
+        const moduleCard =
+            document.createElement("div");
+
+        moduleCard.className =
+            "module-card";
+
+        moduleCard.dataset.id =
+            module.id;
+
+        moduleCard.innerHTML = `
 
             <div class="module-header">
 
                 <div class="module-title">
 
-                    <h3>
-
-                        <i class="bi bi-chevron-${module.expanded ? "down" : "right"}"></i>
-
-                        ${module.title}
-
-                    </h3>
+                    <i class="bi bi-chevron-${
+                        module.expanded
+                            ? "down"
+                            : "right"
+                    }"></i>
 
                     <span>
-
-                        ${module.videos.length} Videos ·
-                        ${module.documents.length} Documentos ·
-                        ${module.quizzes.length} Cuestionarios
-
+                        ${module.title}
                     </span>
 
                 </div>
 
                 <div class="actions">
 
-                    <button class="icon-btn edit">
+                    <button
+                        class="icon-btn edit edit-module"
+                        data-id="${module.id}"
+                    >
 
                         <i class="bi bi-pencil-fill"></i>
 
                     </button>
 
-                    <button class="icon-btn delete">
+                    <button
+                        class="icon-btn delete delete-module"
+                        data-id="${module.id}"
+                    >
 
                         <i class="bi bi-trash-fill"></i>
 
@@ -188,1118 +289,2088 @@ function renderModules() {
 
             </div>
 
-            ${module.expanded ? `
+            ${
+                module.expanded
+                    ? `
 
-            <div class="module-grid">
+                        <div class="module-grid">
 
-                <div class="content-card">
+                            <div class="content-card">
 
-                    <h4>Videos</h4>
+                                <div class="card-header">
 
-                    <div class="card-counter">
+                                    <h4>
 
-                        ${module.videos.length}
+                                        <i class="bi bi-play-circle-fill"></i>
 
-                    </div>
+                                        Videos
 
-                    <div class="card-list">
+                                    </h4>
 
-                       ${renderContentItems(
-                       module.videos,
-                     "bi bi-play-circle-fill"
-                         )}
+                                    <button
+                                        class="content-btn card-action"
+                                        data-type="videos"
+                                        data-module-id="${module.id}"
+                                    >
 
-                    </div>
+                                        <i class="bi bi-plus-lg"></i>
 
-                    <button class="card-action">
+                                    </button>
 
-                        <i class="bi bi-plus-lg"></i>
+                                </div>
 
-                        Agregar video
+                                <div class="card-body">
 
-                    </button>
+                                    ${renderContentItems(
+                                        module.videos,
+                                        "bi bi-play-circle-fill",
+                                        "videos"
+                                    )}
 
-                </div>
+                                </div>
 
-                <div class="content-card">
+                            </div>
 
-                    <h4>Documentos</h4>
 
-                    <div class="card-counter">
+                            <div class="content-card">
 
-                        ${module.documents.length}
+                                <div class="card-header">
 
-                    </div>
+                                    <h4>
 
-<div class="card-list">
+                                        <i class="bi bi-file-earmark-pdf-fill"></i>
 
-    ${renderContentItems(
-        module.documents,
-        "bi bi-file-earmark-fill"
-    )}
+                                        Documentos
 
-</div>
+                                    </h4>
 
-                    <button class="card-action">
+                                    <button
+                                        class="content-btn card-action"
+                                        data-type="documents"
+                                        data-module-id="${module.id}"
+                                    >
 
-                        <i class="bi bi-plus-lg"></i>
+                                        <i class="bi bi-plus-lg"></i>
 
-                        Agregar documento
+                                    </button>
 
-                    </button>
+                                </div>
 
-                </div>
+                                <div class="card-body">
 
-                <div class="content-card">
+                                    ${renderContentItems(
+                                        module.documents,
+                                        "bi bi-file-earmark-pdf-fill",
+                                        "documents"
+                                    )}
 
-                   <h4>Cuestionarios</h4>
+                                </div>
 
-<div class="card-counter">
+                            </div>
 
-    ${module.quizzes.length}
 
-</div>
+                            <div class="content-card">
 
-<div class="card-list">
+                                <div class="card-header">
 
-    ${renderContentItems(
-        module.quizzes,
-        "bi bi-patch-question-fill"
-    )}
+                                    <h4>
 
-</div>
+                                        <i class="bi bi-patch-question-fill"></i>
 
-<button class="card-action">
+                                        Cuestionarios
 
-    <i class="bi bi-plus-lg"></i>
+                                    </h4>
 
-    Agregar cuestionario
+                                    <button
+                                        class="content-btn card-action"
+                                        data-type="quizzes"
+                                        data-module-id="${module.id}"
+                                    >
 
-</button>
+                                        <i class="bi bi-plus-lg"></i>
 
-                </div>
+                                    </button>
 
-            </div>
+                                </div>
 
-            ` : ""}
+                                <div class="card-body">
 
-        </div>
+                                    ${renderContentItems(
+                                        module.quizzes,
+                                        "bi bi-patch-question-fill",
+                                        "quizzes"
+                                    )}
 
-    `).join("");
+                                </div>
 
-    document.querySelectorAll(".module-header").forEach((header, index) => {
+                            </div>
 
-        header.addEventListener("click", () => {
+                        </div>
 
-            const module = courseModules[index];
+                    `
+                    : ""
+            }
 
-            module.expanded = !module.expanded;
+        `;
 
-            renderModules();
-
-        });
+        container.appendChild(moduleCard);
 
     });
-
 }
 
 renderModules();
-const modal = document.getElementById("moduleModal");
-const contentModal = document.getElementById("contentModal");
+document
+    .getElementById("newModule")
+    .addEventListener("click", () => {
 
-const contentModalTitle = document.getElementById("contentModalTitle");
+        editingModule = null;
 
-const secondFieldLabel = document.getElementById("secondFieldLabel");
+        document
+            .getElementById("moduleName")
+            .value = "";
 
-const contentName = document.getElementById("contentName");
+        document
+            .querySelector("#moduleModal h2")
+            .textContent = "Nuevo módulo";
 
-const contentValue = document.getElementById("contentValue");
+        modal.classList.add("active");
 
-const questionModal = document.getElementById("questionModal");
+    });
 
-const closeQuestionModal = document.getElementById("closeQuestionModal");
 
-const cancelQuestion = document.getElementById("cancelQuestion");
+document
+    .getElementById("closeModuleModal")
+    .addEventListener("click", () => {
 
-let currentModule = null;
+        modal.classList.remove("active");
 
-let currentType = null;
+    });
 
-let editingContent = null;
 
-let editingModule = null;
+document
+    .querySelector("#moduleModal .btn-cancel")
+    .addEventListener("click", () => {
 
-let currentQuiz = null;
+        modal.classList.remove("active");
 
-let editingQuestion = null;
+    });
 
-let questions = [];
 
-document.getElementById("newModule").addEventListener("click", () => {
+document
+    .getElementById("saveModule")
+    .addEventListener("click", () => {
+
+        const input =
+            document.getElementById("moduleName");
+
+        const title =
+            input.value.trim();
+
+        if (title === "") {
+
+            alert("Escribe el nombre del módulo.");
+
+            return;
+
+        }
+
+        if (editingModule) {
+
+            editingModule.title = title;
+
+            editingModule = null;
+
+        } else {
+
+            modules.push({
+
+                id: Date.now(),
+
+                courseId: courseId,
+
+                title: title,
+
+                videos: [],
+
+                documents: [],
+
+                quizzes: [],
+
+                expanded: false
+
+            });
+
+        }
+
+        saveModules();
+
+        input.value = "";
+
+        modal.classList.remove("active");
+
+        renderModules();
+
+    });
+
+
+/* =====================================
+   ACORDEÓN DE MÓDULOS
+===================================== */
+
+document.addEventListener("click", e => {
+
+    const header =
+        e.target.closest(".module-header");
+
+    if (!header) return;
+
+    if (
+        e.target.closest(".actions") ||
+        e.target.closest(".icon-btn")
+    ) {
+        return;
+    }
+
+    const moduleCard =
+        header.closest(".module-card");
+
+    const id =
+        Number(moduleCard.dataset.id);
+
+    const module =
+        modules.find(m => m.id === id);
+
+    if (!module) return;
+
+    module.expanded =
+        !module.expanded;
+
+    saveModules();
+
+    renderModules();
+
+});
+
+
+/* =====================================
+   EDITAR MÓDULO
+===================================== */
+
+document.addEventListener("click", e => {
+
+    const button =
+        e.target.closest(".edit-module");
+
+    if (!button) return;
+
+    e.stopPropagation();
+
+    const id =
+        Number(button.dataset.id);
+
+    const module =
+        modules.find(m => m.id === id);
+
+    if (!module) return;
+
+    editingModule = module;
+
+    document
+        .getElementById("moduleName")
+        .value = module.title;
+
+    document
+        .querySelector("#moduleModal h2")
+        .textContent = "Editar módulo";
 
     modal.classList.add("active");
 
 });
 
-document.getElementById("closeModuleModal").addEventListener("click", () => {
 
-    modal.classList.remove("active");
+/* =====================================
+   ELIMINAR MÓDULO
+===================================== */
 
-});
+document.addEventListener("click", e => {
 
-document.querySelector(".btn-cancel").addEventListener("click", () => {
+    const button =
+        e.target.closest(".delete-module");
 
-    modal.classList.remove("active");
-
-});
-document.getElementById("questionType").addEventListener("change",(e)=>{
-
-    if(editingQuestion===null) return;
-
-    saveCurrentQuestion();
-
-    questions[editingQuestion].type = e.target.value;
-
-    renderQuestionsList();
-
-    loadQuestion();
-
-});
-
-document.getElementById("saveModule").addEventListener("click", () => {
-
-    const input = document.getElementById("moduleName");
-
-    const title = input.value.trim();
-
-    if(title === ""){
-
-        alert("Escribe el nombre del módulo.");
-
-        return;
-
-    }
-    if(editingModule){
-
-        editingModule.title = title;
-    
-        editingModule = null;
-    
-    }else{
-
-    if(editingModule){
-
-        editingModule.title = title;
-
-        editingModule = null;
-
-    }else{
-
-        modules.push({
-
-            id: Date.now(),
-
-            courseId: courseId,
-
-            title: title,
-
-            videos: [],
-
-            documents: [],
-
-            quizzes: [],
-
-            expanded: false
-
-        });
-
-    }}
-
-    input.value = "";
-
-    document.querySelector("#moduleModal h2").textContent = "Nuevo módulo";
-
-    modal.classList.remove("active");
-
-    renderModules();
-
-});
-
-/*=====================================
-=       EVENTOS DE LAS TARJETAS       =
-=====================================*/
-document.getElementById("closeContentModal").addEventListener("click",()=>{
-
-    contentModal.classList.remove("active");
-
-});
-closeQuestionModal.addEventListener("click", () => {
-
-    questionModal.classList.remove("active");
-
-});
-
-cancelQuestion.addEventListener("click", () => {
-
-    questionModal.classList.remove("active");
-
-});
-
-document.getElementById("cancelContent").addEventListener("click",()=>{
-
-    contentModal.classList.remove("active");
-
-});
-
-document.addEventListener("click", (e) => {
-
-    /*=========================
-      AGREGAR CONTENIDO
-    =========================*/
-
-    const addButton = e.target.closest(".card-action");
-
-    if (addButton) {
-
-        const card = addButton.closest(".content-card");
-
-        const moduleCard = addButton.closest(".module-card");
-
-        const moduleId = Number(moduleCard.dataset.id);
-
-        currentModule = modules.find(m => m.id === moduleId);
-
-        const section = card.querySelector("h4").textContent;
-
-        const descriptionGroup = document.getElementById("descriptionGroup");
-        const valueGroup = secondFieldLabel.parentElement;
-        
-        if (section === "Videos") {
-        
-            currentType = "videos";
-        
-            contentModalTitle.textContent = "Agregar video";
-        
-            secondFieldLabel.textContent = "Archivo de video";
-        
-            valueGroup.style.display = "block";
-        
-            descriptionGroup.style.display = "block";
-        
-        }
-        
-        if (section === "Documentos") {
-        
-            currentType = "documents";
-        
-            contentModalTitle.textContent = "Agregar documento";
-        
-            secondFieldLabel.textContent = "Archivo PDF o URL";
-        
-            contentValue.placeholder = "Manual.pdf";
-        
-            valueGroup.style.display = "block";
-        
-            descriptionGroup.style.display = "block";
-        
-        }
-        
-        if (section === "Cuestionarios") {
-        
-            currentType = "quizzes";
-        
-            contentModalTitle.textContent = "Agregar cuestionario";
-        
-            valueGroup.style.display = "none";
-        
-            descriptionGroup.style.display = "block";
-        
-        }
-
-        editingContent = null;
-
-        contentName.value = "";
-        
-        document.getElementById("contentDescription").value = "";
-        
-        contentValue.value = "";
-        
-        contentModal.classList.add("active");
-
-        return;
-
-    }
-
-    /*=========================
-      EDITAR MÓDULO
-      =========================*/
-
-    const editButton = e.target.closest(".icon-btn.edit");
-
-    if (editButton) {
-    
-        e.stopPropagation();
-    
-        const moduleCard = editButton.closest(".module-card");
-    
-        const moduleId = Number(moduleCard.dataset.id);
-    
-        editingModule = modules.find(m => m.id === moduleId);
-    
-        if (!editingModule) return;
-    
-        document.querySelector("#moduleModal h2").textContent = "Editar módulo";
-    
-        document.getElementById("moduleName").value = editingModule.title;
-    
-        modal.classList.add("active");
-    
-        return;
-    
-    }
-/*=========================
-  ABRIR CONTENIDO
-=========================*/
-const openQuiz = e.target.closest(".open-quiz");
-
-if(openQuiz){
-    const id = Number(openQuiz.dataset.id);
-    currentQuiz = currentModule.quizzes.find(q => q.id === id);
-    if(!currentQuiz) return;
-    renderQuestionEditor("multiple");
-    questions = [...(currentQuiz.questions || [])];
-    editingQuestion = null;
-    renderQuestionsList();
-    questionModal.classList.add("active");
-
-    return;
-
-}
-
-const openContent = e.target.closest(".content-open");
-
-if(openContent){
-
-    const id = Number(openContent.dataset.id);
-
-    alert("Abrir contenido: " + id);
-
-    return;
-
-}
-
-    //EDITAR CONTENIDO
-    const editContent = e.target.closest(".edit-content");
-
-    if (editContent) {
-    
-        e.stopPropagation();
-    
-        const moduleCard = editContent.closest(".module-card");
-    
-        const moduleId = Number(moduleCard.dataset.id);
-    
-        currentModule = modules.find(m => m.id === moduleId);
-    
-        const id = Number(editContent.dataset.id);
-    
-        editingContent = null;
-    
-        for (const type of ["videos","documents","quizzes"]) {
-    
-            const found = currentModule[type].find(item => item.id === id);
-    
-            if (found) {
-    
-                editingContent = found;
-                currentType = type;
-                break;
-    
-            }
-    
-        }
-    
-        if (!editingContent) return;
-    
-        contentName.value = editingContent.name;
-        document.getElementById("contentDescription").value =
-            editingContent.description || "";
-        document.getElementById("contentValue").value = "";
-    
-        contentModalTitle.textContent =
-            currentType === "videos"
-                ? "Editar video"
-                : currentType === "documents"
-                    ? "Editar documento"
-                    : "Editar cuestionario";
-    
-        secondFieldLabel.textContent =
-            currentType === "videos"
-                ? "Archivo de video"
-                : "Archivo";
-    
-        valueGroup.style.display =
-            currentType === "quizzes" ? "none" : "block";
-    
-        descriptionGroup.style.display = "block";
-    
-        contentModal.classList.add("active");
-    
-        return;
-    
-    }
-
-/*=========================
-  ELIMINAR CONTENIDO
-=========================*/
-
-const deleteContent = e.target.closest(".delete-content");
-
-if (deleteContent) {
+    if (!button) return;
 
     e.stopPropagation();
 
-    if(!confirm("¿Eliminar este elemento?")){
+    const id =
+        Number(button.dataset.id);
 
+    const index =
+        modules.findIndex(m => m.id === id);
+
+    if (index === -1) return;
+
+    if (
+        !confirm(
+            "¿Seguro que quieres eliminar este módulo?"
+        )
+    ) {
         return;
-
     }
 
-    const id = Number(deleteContent.dataset.id);
+    modules.splice(index, 1);
 
-    for(const type of ["videos","documents","quizzes"]){
-
-        const index = currentModule[type].findIndex(item => item.id === id);
-
-        if(index !== -1){
-
-            currentModule[type].splice(index,1);
-
-            break;
-
-        }
-
-    }
+    saveModules();
 
     renderModules();
 
-    return;
-
-}
-
 });
 
-document.getElementById("saveContent").addEventListener("click",()=>{
 
-    const name = contentName.value.trim();
+/* =====================================
+   ABRIR MODAL DE CONTENIDO
+===================================== */
 
-    if(name===""){
+document.addEventListener("click", e => {
 
-        alert("Escribe un nombre.");
+    const button =
+        e.target.closest(".card-action");
 
-        return;
+    if (!button) return;
 
-    }
+    e.stopPropagation();
 
-    const description =
-        document.getElementById("contentDescription").value.trim();
+    const moduleId =
+        Number(button.dataset.moduleId);
 
-    const file =
-        document.getElementById("contentValue").files[0];
+    const type =
+        button.dataset.type;
 
-        if(editingContent){
+    currentModule =
+        modules.find(m => m.id === moduleId);
 
-            editingContent.name = name;
-        
-            editingContent.description = description;
-        
-            if(file){
-        
-                editingContent.file = file.name;
-        
-            }
-        
-            editingContent = null;
-        
-        }else{
-      
-            const newContent = {
-                id: Date.now(),
-                name: name,
-                description: description,
-                file: file ? file.name : "",
-                questions: []
-            };
-            
-            currentModule[currentType].push(newContent);
-        
-        }
+    if (!currentModule) return;
+
+    currentType = type;
+
+    editingContent = null;
 
     contentName.value = "";
 
-    document.getElementById("contentDescription").value = "";
+    document
+        .getElementById("contentDescription")
+        .value = "";
 
-    document.getElementById("contentValue").value = "";
+    contentValue.value = "";
 
-    contentModal.classList.remove("active");
+    if (type === "videos") {
+
+        contentModalTitle.textContent =
+            "Agregar video";
+    
+        secondFieldLabel.textContent =
+            "URL del video";
+    
+        contentValue.type =
+            "text";
+    
+        contentValue.accept = "";
+    
+        contentValue.placeholder =
+            "https://www.youtube.com/watch?v=...";
+    
+    }
+
+    if (type === "documents") {
+
+        contentModalTitle.textContent =
+            "Agregar documento";
+    
+        secondFieldLabel.textContent =
+            "Archivo PDF";
+    
+        contentValue.type =
+            "file";
+    
+        contentValue.accept =
+            ".pdf,application/pdf";
+    
+        contentValue.placeholder =
+            "";
+    
+    }
+
+    if (type === "quizzes") {
+
+        contentModalTitle.textContent =
+            "Agregar cuestionario";
+    
+        secondFieldLabel.textContent =
+            "Descripción";
+    
+        contentValue.type =
+            "text";
+    
+        contentValue.accept = "";
+    
+        contentValue.placeholder =
+            "Descripción del cuestionario";
+    
+    }
+
+    contentModal.classList.add("active");
+
+});
+
+
+/* =====================================
+   CERRAR MODAL DE CONTENIDO
+===================================== */
+
+document
+    .getElementById("closeContentModal")
+    .addEventListener("click", () => {
+
+        contentModal.classList.remove("active");
+
+        editingContent = null;
+
+    });
+
+
+document
+    .getElementById("cancelContent")
+    .addEventListener("click", () => {
+
+        contentModal.classList.remove("active");
+
+        editingContent = null;
+
+    });
+
+
+/* =====================================
+   GUARDAR CONTENIDO
+===================================== */
+
+document
+    .getElementById("saveContent")
+    .addEventListener("click", () => {
+
+        if (!currentModule || !currentType) {
+            return;
+        }
+
+        const name =
+            contentName.value.trim();
+
+        if (name === "") {
+
+            alert("Escribe un nombre.");
+
+            return;
+
+        }
+
+        const description =
+            document
+                .getElementById("contentDescription")
+                .value
+                .trim();
+
+
+        /* =========================
+           VIDEO
+        ========================= */
+
+        if (currentType === "videos") {
+
+            const url =
+                contentValue.value.trim();
+
+            if (url === "") {
+
+                alert(
+                    "Escribe la URL del video."
+                );
+
+                return;
+
+            }
+
+            if (editingContent) {
+
+                editingContent.name =
+                    name;
+
+                editingContent.url =
+                    url;
+
+                editingContent.description =
+                    description;
+
+            } else {
+
+                currentModule.videos.push({
+
+                    id: Date.now(),
+
+                    name: name,
+
+                    url: url,
+
+                    description: description
+
+                });
+
+            }
+
+        }
+
+
+        /* =========================
+           DOCUMENTO PDF
+        ========================= */
+
+        if (currentType === "documents") {
+
+            const file =
+                contentValue.files[0];
+
+
+            /*
+             * Si estamos editando y no
+             * seleccionamos otro PDF,
+             * conservamos el actual.
+             */
+
+            if (editingContent && !file) {
+
+                editingContent.name =
+                    name;
+
+                editingContent.description =
+                    description;
+
+                saveModules();
+
+                cerrarModalContenido();
+
+                return;
+
+            }
+
+
+            if (!file) {
+
+                alert(
+                    "Selecciona un archivo PDF."
+                );
+
+                return;
+
+            }
+
+
+            if (
+                file.type !==
+                "application/pdf"
+            ) {
+
+                alert(
+                    "Solo puedes seleccionar archivos PDF."
+                );
+
+                return;
+
+            }
+
+
+            /*
+             * Límite para evitar llenar
+             * el localStorage.
+             */
+
+            if (
+                file.size >
+                5 * 1024 * 1024
+            ) {
+
+                alert(
+                    "El PDF no puede superar 5 MB."
+                );
+
+                return;
+
+            }
+
+
+            const reader =
+                new FileReader();
+
+
+            reader.onload = function () {
+
+                if (editingContent) {
+
+                    editingContent.name =
+                        name;
+
+                    editingContent.description =
+                        description;
+
+                    editingContent.fileName =
+                        file.name;
+
+                    editingContent.file =
+                        reader.result;
+
+                } else {
+
+                    currentModule.documents.push({
+
+                        id: Date.now(),
+
+                        name: name,
+
+                        description: description,
+
+                        fileName: file.name,
+
+                        file: reader.result,
+
+                        questions: []
+
+                    });
+
+                }
+
+
+                guardarYcerrarContenido();
+
+            };
+
+
+            reader.readAsDataURL(file);
+
+            return;
+
+        }
+
+
+        /* =========================
+           CUESTIONARIO
+        ========================= */
+
+        if (currentType === "quizzes") {
+
+            const quizDescription =
+                contentValue.value.trim();
+
+
+            if (editingContent) {
+
+                editingContent.name =
+                    name;
+
+                editingContent.description =
+                    quizDescription;
+
+            } else {
+
+                currentModule.quizzes.push({
+
+                    id: Date.now(),
+
+                    name: name,
+
+                    description:
+                        quizDescription,
+
+                    questions: []
+
+                });
+
+            }
+
+        }
+
+
+        guardarYcerrarContenido();
+
+    });
+
+
+/* =====================================
+   GUARDAR Y CERRAR CONTENIDO
+===================================== */
+
+function guardarYcerrarContenido() {
+
+    saveModules();
+
+    contentName.value = "";
+
+    contentValue.value = "";
+
+    document
+        .getElementById("contentDescription")
+        .value = "";
+
+    contentModal.classList.remove(
+        "active"
+    );
 
     editingContent = null;
+
+    currentModule = null;
+
+    currentType = null;
+
+    renderModules();
+
+}
+
+
+/* =====================================
+   CERRAR MODAL DESPUÉS DE EDITAR PDF
+===================================== */
+
+function cerrarModalContenido() {
+
+    contentName.value = "";
+
+    contentValue.value = "";
+
+    document
+        .getElementById("contentDescription")
+        .value = "";
+
+    contentModal.classList.remove(
+        "active"
+    );
+
+    editingContent = null;
+
+    currentModule = null;
+
+    currentType = null;
+
+    renderModules();
+
+}
+
+
+/* =====================================
+   EDITAR CONTENIDO
+===================================== */
+
+document.addEventListener("click", e => {
+
+    const button =
+        e.target.closest(".edit-content");
+
+    if (!button) return;
+
+    e.stopPropagation();
+
+    const id =
+        Number(button.dataset.id);
+
+    const type =
+        button.dataset.type;
+
+    const moduleCard =
+        button.closest(".module-card");
+
+    const moduleId =
+        Number(moduleCard.dataset.id);
+
+    const module =
+        modules.find(m => m.id === moduleId);
+
+    if (!module) return;
+
+    const item =
+        module[type].find(
+            content => {
+
+                if (
+                    typeof content === "string"
+                ) {
+                    return false;
+                }
+
+                return content.id === id;
+
+            }
+        );
+
+    if (!item) return;
+
+    currentModule = module;
+
+    currentType = type;
+
+    editingContent = item;
+
+    contentName.value =
+        item.name || "";
+
+    document
+        .getElementById("contentDescription")
+        .value =
+            item.description || "";
+
+    contentValue.value = "";
+
+    contentValue.value = "";
+
+
+    /* =========================
+       EDITAR VIDEO
+    ========================= */
     
+    if (type === "videos") {
+    
+        contentModalTitle.textContent =
+            "Editar video";
+    
+        secondFieldLabel.textContent =
+            "URL del video";
+    
+        contentValue.type =
+            "text";
+    
+        contentValue.accept = "";
+    
+        contentValue.placeholder =
+            "https://www.youtube.com/watch?v=...";
+    
+        contentValue.value =
+            item.url || "";
+    
+    }
+    
+    
+    /* =========================
+       EDITAR DOCUMENTO
+    ========================= */
+    
+    if (type === "documents") {
+    
+        contentModalTitle.textContent =
+            "Editar documento";
+    
+        secondFieldLabel.textContent =
+            "Archivo PDF";
+    
+        contentValue.type =
+            "file";
+    
+        contentValue.accept =
+            ".pdf,application/pdf";
+    
+        contentValue.placeholder =
+            "";
+    
+    }
+    
+    
+    /* =========================
+       EDITAR CUESTIONARIO
+    ========================= */
+    
+    if (type === "quizzes") {
+    
+        contentModalTitle.textContent =
+            "Editar cuestionario";
+    
+        secondFieldLabel.textContent =
+            "Descripción";
+    
+        contentValue.type =
+            "text";
+    
+        contentValue.accept = "";
+    
+        contentValue.placeholder =
+            "Descripción del cuestionario";
+    
+        contentValue.value =
+            item.description || "";
+    
+    }
+
+    contentModal.classList.add("active");
+
+});
+
+
+/* =====================================
+   ELIMINAR CONTENIDO
+===================================== */
+
+document.addEventListener("click", e => {
+
+    const button =
+        e.target.closest(".delete-content");
+
+    if (!button) return;
+
+    e.stopPropagation();
+
+    const id =
+        Number(button.dataset.id);
+
+    const type =
+        button.dataset.type;
+
+    const moduleCard =
+        button.closest(".module-card");
+
+    const moduleId =
+        Number(moduleCard.dataset.id);
+
+    const module =
+        modules.find(m => m.id === moduleId);
+
+    if (!module) return;
+
+    const index =
+        module[type].findIndex(
+            content =>
+                typeof content !== "string" &&
+                content.id === id
+        );
+
+    if (index === -1) return;
+
+    if (
+        !confirm(
+            "¿Seguro que quieres eliminar este contenido?"
+        )
+    ) {
+        return;
+    }
+
+    module[type].splice(index, 1);
+
+    saveModules();
+
     renderModules();
 
 });
-function renderQuestionEditor(type){
 
-    const container = document.getElementById("questionEditor");
 
-    if(type === "multiple"){
+/* =====================================
+   ABRIR CUESTIONARIO
+===================================== */
 
-        container.innerHTML = `
+document.addEventListener("click", e => {
 
-            <div class="form-group">
+    const item =
+        e.target.closest(".content-open");
 
-                <label>Pregunta</label>
+    if (!item) return;
 
-                <textarea id="questionText"></textarea>
+    const type =
+        item.dataset.type;
 
-            </div>
+    if (type !== "quizzes") return;
 
-<div id="optionsContainer">
+    const id =
+        Number(item.dataset.id);
 
-</div>
+    const moduleCard =
+        item.closest(".module-card");
 
-<button
-    type="button"
-    id="addOption"
-    class="btn-save">
+    const moduleId =
+        Number(moduleCard.dataset.id);
 
-    <i class="bi bi-plus-circle-fill"></i>
+    const module =
+        modules.find(m => m.id === moduleId);
 
-    Agregar opción
+    if (!module) return;
 
-</button>
+    currentModule = module;
 
-            <div class="form-group">
+    currentQuiz =
+        module.quizzes.find(
+            quiz => quiz.id === id
+        );
 
-                <label>Respuesta correcta</label>
+    if (!currentQuiz) return;
 
-                <select id="correctAnswer">
-
-                    <option value="A">A</option>
-
-                    <option value="B">B</option>
-
-                    <option value="C">C</option>
-
-                    <option value="D">D</option>
-
-                </select>
-
-            </div>
-
-        `;
-
-    }
-    if(type === "boolean"){
-
-        container.innerHTML = `
-    
-            <div class="form-group">
-    
-                <label>Pregunta</label>
-    
-                <textarea id="questionText"></textarea>
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Respuesta correcta</label>
-    
-                <select id="correctAnswer">
-    
-                    <option value="true">Verdadero</option>
-    
-                    <option value="false">Falso</option>
-    
-                </select>
-    
-            </div>
-    
-        `;
-    
-    }
-    if(type === "text"){
-
-        container.innerHTML = `
-    
-            <div class="form-group">
-    
-                <label>Pregunta</label>
-    
-                <textarea id="questionText"></textarea>
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Respuesta esperada (opcional)</label>
-    
-                <textarea id="expectedAnswer"></textarea>
-    
-            </div>
-    
-        `;
-    
-    }
-    if(type === "checkbox"){
-
-        container.innerHTML = `
-    
-            <div class="form-group">
-    
-                <label>Pregunta</label>
-    
-                <textarea id="questionText"></textarea>
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Opción A</label>
-    
-                <input type="text" id="optionA">
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Opción B</label>
-    
-                <input type="text" id="optionB">
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Opción C</label>
-    
-                <input type="text" id="optionC">
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Opción D</label>
-    
-                <input type="text" id="optionD">
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Selecciona las respuestas correctas</label>
-    
-                <label><input type="checkbox"> A</label><br>
-    
-                <label><input type="checkbox"> B</label><br>
-    
-                <label><input type="checkbox"> C</label><br>
-    
-                <label><input type="checkbox"> D</label>
-    
-            </div>
-    
-        `;
-    
-    }
-    if(type === "complete"){
-
-        container.innerHTML = `
-    
-            <div class="form-group">
-    
-                <label>Pregunta</label>
-    
-                <textarea
-                    placeholder="Ej. El ______ es obligatorio."></textarea>
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Respuesta correcta</label>
-    
-                <input
-                    type="text"
-                    placeholder="Casco">
-    
-            </div>
-    
-        `;
-    
-    }
-    if(type === "match"){
-
-        container.innerHTML = `
-    
-            <div class="form-group">
-    
-                <label>Instrucción</label>
-    
-                <textarea></textarea>
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Columna izquierda</label>
-    
-                <input type="text" placeholder="Casco">
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Columna derecha</label>
-    
-                <input type="text" placeholder="Protección de cabeza">
-    
-            </div>
-    
-        `;
-    
-    }
-    if(type === "order"){
-
-        container.innerHTML = `
-    
-            <div class="form-group">
-    
-                <label>Instrucción</label>
-    
-                <textarea></textarea>
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Paso 1</label>
-    
-                <input type="text">
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Paso 2</label>
-    
-                <input type="text">
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Paso 3</label>
-    
-                <input type="text">
-    
-            </div>
-    
-            <div class="form-group">
-    
-                <label>Paso 4</label>
-    
-                <input type="text">
-    
-            </div>
-    
-        `;
-    
-    }
-}
-function renderQuestionsList(){
-
-    const list = document.getElementById("questionsList");
-
-    const typeNames = {
-
-        multiple: "Opción múltiple",
-    
-        boolean: "Verdadero / Falso",
-    
-        text: "Respuesta abierta",
-    
-        checkbox: "Selección múltiple",
-    
-        order: "Ordenar pasos",
-    
-        match: "Relacionar columnas",
-    
-        complete: "Completar espacios"
-    
-    };
-
-    list.innerHTML = questions.map((question,index)=>`
-
-       <div
-    class="question-card ${index===editingQuestion?"active":""}"
-    data-index="${index}">
-
-    <div class="question-header">
-
-        <div>
-
-<strong>
-
-    ${question.question && question.question.trim() !== ""
-        ? question.question
-        : `Nueva pregunta ${index+1}`}
-
-</strong>
-
-            <div class="question-type">
-
-                ${typeNames[question.type]}
-
-            </div>
-
-        </div>
-
-        <button
-            class="delete-question"
-            data-index="${index}">
-
-            <i class="bi bi-trash-fill"></i>
-
-        </button>
-
-    </div>
-
-</div>
-
-    `).join("");
-
-}
-document.getElementById("newQuestion").addEventListener("click",()=>{
-
-    questions.push({
-
-        type: "multiple",
-    
-        question: "",
-    
-        options: ["", "", "", ""],
-    
-        answer: "",
-    
-        points: 10
-    
-    });
-
-    editingQuestion = questions.length-1;
-
-    renderQuestionsList();
-
-    loadQuestion();
-
-});
-
-document.addEventListener("click",(e)=>{
-
-    const deleteQuestion = e.target.closest(".delete-question");
-
-if(deleteQuestion){
-
-    const index = Number(deleteQuestion.dataset.index);
-
-    questions.splice(index,1);
+    questions =
+        [...(currentQuiz.questions || [])];
 
     editingQuestion = null;
 
-    renderQuestionsList();
-
-    return;
-
-}
-
-    const card = e.target.closest(".question-card");
-
-    if(!card) return;
-
-    saveCurrentQuestion();
-
-    editingQuestion = Number(card.dataset.index);
-
-    renderQuestionsList();
-    
-    loadQuestion();
-
-});
-function loadQuestion(){
-
-    if(editingQuestion===null) return;
-
-    const q = questions[editingQuestion];
-
-    document.getElementById("questionType").value = q.type;
-
-    renderQuestionEditor(q.type);
-
-    const question = document.getElementById("questionText");
-
-    if(question){
-
-        question.value = q.question || "";
-
-    }
-
-    switch(q.type){
-
-        case "multiple":
-
-        renderOptions();
-    
-        correctAnswer.value = q.answer || "A";
-    
-        break;
-
-        case "boolean":
-
-            correctAnswer.value = q.answer || "true";
-
-            break;
-
-        case "text":
-
-            expectedAnswer.value = q.answer || "";
-
-            break;
-    }
-    attachQuestionEvents();
-    renderOptions();
-
-}
-
-function attachQuestionEvents(){
-
-    const question = document.getElementById("questionText");
-
-    if(!question) return;
-
-    question.addEventListener("input",()=>{
-
-        if(editingQuestion===null) return;
-
-        questions[editingQuestion].question = question.value;
+    if (typeof renderQuestionsList === "function") {
 
         renderQuestionsList();
 
-    });
+    }
 
-}
-function renderOptions(){
+    questionModal.classList.add("active");
 
-    const container = document.getElementById("optionsContainer");
+});
+/* =====================================
+   EDITOR DE PREGUNTAS
+===================================== */
 
-    if(!container || editingQuestion===null) return;
+function renderQuestionsList() {
 
-    const q = questions[editingQuestion];
+    const list =
+        document.getElementById("questionsList");
 
-    container.innerHTML = "";
+    list.innerHTML = "";
 
-    q.options.forEach((option,index)=>{
+    if (questions.length === 0) {
 
-        container.innerHTML += `
+        list.innerHTML = `
+            <div class="empty-text">
+                No hay preguntas.
+            </div>
+        `;
 
-            <div class="form-group">
+        document
+            .getElementById("questionEditor")
+            .innerHTML = `
+                <div class="empty-text">
+                    Crea una nueva pregunta.
+                </div>
+            `;
 
-                <label>Opción ${index+1}</label>
+        return;
+    }
 
-                <input
-                    type="text"
-                    class="option-input"
+    questions.forEach((question, index) => {
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "question-card" +
+            (
+                editingQuestion === index
+                    ? " active"
+                    : ""
+            );
+
+        card.innerHTML = `
+
+            <div class="question-header">
+
+                <div>
+
+                    <strong>
+                        Pregunta ${index + 1}
+                    </strong>
+
+                    <div class="question-type">
+                        ${getQuestionTypeName(question.type)}
+                    </div>
+
+                </div>
+
+                <button
+                    class="delete-question"
                     data-index="${index}"
-                    value="${option}">
+                >
+
+                    <i class="bi bi-trash-fill"></i>
+
+                </button>
 
             </div>
 
         `;
 
+        card.addEventListener("click", e => {
+
+            if (
+                e.target.closest(".delete-question")
+            ) {
+                return;
+            }
+
+            if (
+                editingQuestion !== null
+            ) {
+                saveCurrentQuestion();
+            }
+
+            editingQuestion = index;
+
+            renderQuestionsList();
+
+            loadQuestion();
+
+        });
+
+        list.appendChild(card);
+
     });
 
 }
-function saveCurrentQuestion(){
 
-    if(editingQuestion===null) return;
 
-    const q = questions[editingQuestion];
+function getQuestionTypeName(type) {
 
-    const question = document.getElementById("questionText");
+    const names = {
 
-    if(question){
+        multiple:
+            "Opción múltiple",
 
-        q.question = question.value;
+        boolean:
+            "Verdadero / Falso",
+
+        text:
+            "Respuesta abierta",
+
+        checkbox:
+            "Selección múltiple",
+
+        order:
+            "Ordenar pasos",
+
+        match:
+            "Relacionar columnas",
+
+        complete:
+            "Completar espacios"
+
+    };
+
+    return names[type] || "Pregunta";
+
+}
+
+
+/* =====================================
+   NUEVA PREGUNTA
+===================================== */
+
+document
+    .getElementById("newQuestion")
+    .addEventListener("click", () => {
+
+        if (
+            editingQuestion !== null
+        ) {
+            saveCurrentQuestion();
+        }
+
+        const newQuestion = {
+
+            type: "multiple",
+
+            question: "",
+
+            options: [
+                "",
+                "",
+                "",
+                ""
+            ],
+
+            correctAnswer: 0
+
+        };
+
+        questions.push(newQuestion);
+
+        editingQuestion =
+            questions.length - 1;
+
+        renderQuestionsList();
+
+        loadQuestion();
+
+    });
+
+
+/* =====================================
+   CARGAR PREGUNTA
+===================================== */
+
+function loadQuestion() {
+
+    if (
+        editingQuestion === null ||
+        !questions[editingQuestion]
+    ) {
+        return;
+    }
+
+    const question =
+        questions[editingQuestion];
+
+    document
+        .getElementById("questionType")
+        .value =
+            question.type || "multiple";
+
+    renderQuestionEditor(
+        question.type || "multiple"
+    );
+
+}
+
+
+/* =====================================
+   GENERAR EDITOR SEGÚN TIPO
+===================================== */
+
+function renderQuestionEditor(type) {
+
+    const editor =
+        document.getElementById(
+            "questionEditor"
+        );
+
+    const question =
+        questions[editingQuestion];
+
+    if (!question) {
+
+        editor.innerHTML = "";
+
+        return;
 
     }
 
-    switch(q.type){
 
-        case "multiple":
+    if (type === "multiple") {
 
-        q.answer = correctAnswer.value;
-    
-        break;
+        question.options =
+            question.options || [
+                "",
+                "",
+                "",
+                ""
+            ];
 
-        case "boolean":
+        editor.innerHTML = `
 
-            q.answer = correctAnswer.value;
+            <div class="form-group">
 
-            break;
+                <label>Pregunta</label>
 
-        case "text":
+                <textarea
+                    id="questionText"
+                    rows="4"
+                    placeholder="Escribe la pregunta..."
+                >${question.question || ""}</textarea>
 
-            q.answer = expectedAnswer.value;
+            </div>
 
-            break;
+            <div class="form-group">
+
+                <label>Opciones</label>
+
+                <div id="optionsContainer">
+
+                    ${question.options.map(
+                        (option, index) => `
+
+                        <div class="form-group">
+
+                            <input
+                                type="text"
+                                class="question-option"
+                                data-index="${index}"
+                                value="${option || ""}"
+                                placeholder="Opción ${index + 1}"
+                            >
+
+                        </div>
+
+                    `).join("")}
+
+                </div>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Respuesta correcta</label>
+
+                <select id="correctAnswer">
+
+                    ${question.options.map(
+                        (option, index) => `
+
+                        <option
+                            value="${index}"
+                            ${
+                                Number(
+                                    question.correctAnswer
+                                ) === index
+                                    ? "selected"
+                                    : ""
+                            }
+                        >
+                            Opción ${index + 1}
+                        </option>
+
+                    `).join("")}
+
+                </select>
+
+            </div>
+
+        `;
+
+    }
+
+
+    if (type === "boolean") {
+
+        editor.innerHTML = `
+
+            <div class="form-group">
+
+                <label>Pregunta</label>
+
+                <textarea
+                    id="questionText"
+                    rows="4"
+                    placeholder="Escribe la pregunta..."
+                >${question.question || ""}</textarea>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Respuesta correcta</label>
+
+                <select id="correctAnswer">
+
+                    <option
+                        value="0"
+                        ${
+                            Number(
+                                question.correctAnswer
+                            ) === 0
+                                ? "selected"
+                                : ""
+                        }
+                    >
+                        Verdadero
+                    </option>
+
+                    <option
+                        value="1"
+                        ${
+                            Number(
+                                question.correctAnswer
+                            ) === 1
+                                ? "selected"
+                                : ""
+                        }
+                    >
+                        Falso
+                    </option>
+
+                </select>
+
+            </div>
+
+        `;
+
+    }
+
+
+    if (type === "text") {
+
+        editor.innerHTML = `
+
+            <div class="form-group">
+
+                <label>Pregunta</label>
+
+                <textarea
+                    id="questionText"
+                    rows="4"
+                    placeholder="Escribe la pregunta..."
+                >${question.question || ""}</textarea>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Respuesta esperada</label>
+
+                <input
+                    id="correctText"
+                    type="text"
+                    value="${question.correctText || ""}"
+                    placeholder="Escribe la respuesta correcta"
+                >
+
+            </div>
+
+        `;
+
+    }
+
+
+    if (type === "checkbox") {
+
+        question.options =
+            question.options || [
+                "",
+                "",
+                "",
+                ""
+            ];
+
+        question.correctAnswers =
+            question.correctAnswers || [];
+
+        editor.innerHTML = `
+
+            <div class="form-group">
+
+                <label>Pregunta</label>
+
+                <textarea
+                    id="questionText"
+                    rows="4"
+                    placeholder="Escribe la pregunta..."
+                >${question.question || ""}</textarea>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Opciones</label>
+
+                ${question.options.map(
+                    (option, index) => `
+
+                    <div
+                        class="form-group"
+                        style="display:flex;align-items:center;gap:10px;"
+                    >
+
+                        <input
+                            type="checkbox"
+                            class="correct-checkbox"
+                            data-index="${index}"
+                            ${
+                                question.correctAnswers.includes(
+                                    index
+                                )
+                                    ? "checked"
+                                    : ""
+                            }
+                        >
+
+                        <input
+                            type="text"
+                            class="question-option"
+                            data-index="${index}"
+                            value="${option || ""}"
+                            placeholder="Opción ${index + 1}"
+                        >
+
+                    </div>
+
+                `).join("")}
+
+            </div>
+
+        `;
+
+    }
+
+
+    if (type === "order") {
+
+        question.options =
+            question.options || [
+                "",
+                "",
+                "",
+                ""
+            ];
+
+        editor.innerHTML = `
+
+            <div class="form-group">
+
+                <label>Pregunta</label>
+
+                <textarea
+                    id="questionText"
+                    rows="4"
+                    placeholder="Escribe la instrucción..."
+                >${question.question || ""}</textarea>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Pasos en orden correcto</label>
+
+                ${question.options.map(
+                    (option, index) => `
+
+                    <input
+                        type="text"
+                        class="question-option"
+                        data-index="${index}"
+                        value="${option || ""}"
+                        placeholder="Paso ${index + 1}"
+                        style="margin-bottom:10px;"
+                    >
+
+                `).join("")}
+
+            </div>
+
+        `;
+
+    }
+
+
+if (type === "match") {
+
+    question.left =
+        question.left || ["", "", ""];
+
+    question.right =
+        question.right || ["", "", ""];
+
+    question.correctMatches =
+        question.correctMatches || [0, 1, 2];
+
+    editor.innerHTML = `
+
+        <div class="form-group">
+
+            <label>Pregunta</label>
+
+            <textarea
+                id="questionText"
+                rows="4"
+                placeholder="Escribe la instrucción..."
+            >${question.question || ""}</textarea>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>Columna izquierda</label>
+
+            ${question.left.map(
+                (item, index) => `
+
+                <input
+                    type="text"
+                    class="match-left"
+                    data-index="${index}"
+                    value="${item || ""}"
+                    placeholder="Elemento ${index + 1}"
+                    style="margin-bottom:10px;"
+                >
+
+            `).join("")}
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>Columna derecha</label>
+
+            ${question.right.map(
+                (item, index) => `
+
+                <input
+                    type="text"
+                    class="match-right"
+                    data-index="${index}"
+                    value="${item || ""}"
+                    placeholder="Respuesta ${index + 1}"
+                    style="margin-bottom:10px;"
+                >
+
+            `).join("")}
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>Relaciones correctas</label>
+
+            ${question.left.map(
+                (item, index) => `
+
+                <div
+                    style="
+                        display:flex;
+                        align-items:center;
+                        gap:12px;
+                        margin-bottom:12px;
+                    "
+                >
+
+                    <span style="flex:1;">
+                        ${item || `Elemento ${index + 1}`}
+                    </span>
+
+
+                    <select
+                        class="match-correct"
+                        data-index="${index}"
+                        style="flex:1;"
+                    >
+
+                        ${question.right.map(
+                            (rightItem, rightIndex) => `
+
+                            <option
+                                value="${rightIndex}"
+                                ${
+                                    Number(
+                                        question.correctMatches[index]
+                                    ) === rightIndex
+                                        ? "selected"
+                                        : ""
+                                }
+                            >
+                                ${rightItem || `Respuesta ${rightIndex + 1}`}
+                            </option>
+
+                        `).join("")}
+
+                    </select>
+
+                </div>
+
+            `).join("")}
+
+        </div>
+
+    `;
+
+}
+    if (type === "complete") {
+
+        editor.innerHTML = `
+
+            <div class="form-group">
+
+                <label>Oración</label>
+
+                <textarea
+                    id="questionText"
+                    rows="4"
+                    placeholder="Ej. El equipo de protección es ______."
+                >${question.question || ""}</textarea>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Respuesta correcta</label>
+
+                <input
+                    id="correctText"
+                    type="text"
+                    value="${question.correctText || ""}"
+                    placeholder="Palabra o frase correcta"
+                >
+
+            </div>
+
+        `;
 
     }
 
 }
-document.addEventListener("click",(e)=>{
 
-    if(e.target.id==="addOption"){
 
-        questions[editingQuestion].options.push("");
+/* =====================================
+   GUARDAR CAMBIOS DE LA PREGUNTA
+===================================== */
 
-        renderOptions();
+function saveCurrentQuestion() {
+
+    if (
+        editingQuestion === null ||
+        !questions[editingQuestion]
+    ) {
+        return;
+    }
+
+    const question =
+        questions[editingQuestion];
+
+    const questionText =
+        document.getElementById(
+            "questionText"
+        );
+
+    if (questionText) {
+
+        question.question =
+            questionText.value.trim();
 
     }
 
-});
-document.addEventListener("input",(e)=>{
 
-    if(!e.target.classList.contains("option-input")) return;
+    if (
+        question.type === "multiple" ||
+        question.type === "checkbox" ||
+        question.type === "order"
+    ) {
 
-    const index = Number(e.target.dataset.index);
+        question.options =
+            [...document.querySelectorAll(
+                ".question-option"
+            )].map(
+                input => input.value.trim()
+            );
 
-    questions[editingQuestion].options[index] = e.target.value;
+    }
 
-});
-document.getElementById("saveQuestion").addEventListener("click",()=>{
 
-    if(!currentQuiz) return;
+    if (question.type === "multiple") {
 
-    saveCurrentQuestion();
+        const correct =
+            document.getElementById(
+                "correctAnswer"
+            );
 
-    currentQuiz.questions = [...questions];
+        if (correct) {
 
-    localStorage.setItem("oiQuiz", JSON.stringify(currentQuiz));
+            question.correctAnswer =
+                Number(correct.value);
 
-    alert("Cuestionario guardado correctamente.");
+        }
 
-    questionModal.classList.remove("active");
+    }
 
-    renderModules();
 
+    if (question.type === "boolean") {
+
+        const correct =
+            document.getElementById(
+                "correctAnswer"
+            );
+
+        if (correct) {
+
+            question.correctAnswer =
+                Number(correct.value);
+
+        }
+
+        question.options = [
+            "Verdadero",
+            "Falso"
+        ];
+
+    }
+
+
+    if (question.type === "text") {
+
+        const correct =
+            document.getElementById(
+                "correctText"
+            );
+
+        question.correctText =
+            correct
+                ? correct.value.trim()
+                : "";
+
+    }
+
+
+    if (question.type === "checkbox") {
+
+        question.correctAnswers =
+            [...document.querySelectorAll(
+                ".correct-checkbox:checked"
+            )].map(
+                checkbox =>
+                    Number(checkbox.dataset.index)
+            );
+
+    }
+
+
+if (question.type === "match") {
+
+    question.left =
+        [...document.querySelectorAll(
+            ".match-left"
+        )].map(
+            input => input.value.trim()
+        );
+
+
+    question.right =
+        [...document.querySelectorAll(
+            ".match-right"
+        )].map(
+            input => input.value.trim()
+        );
+
+
+    question.correctMatches =
+        [...document.querySelectorAll(
+            ".match-correct"
+        )].map(
+            select => Number(select.value)
+        );
+
+}
+
+
+    if (question.type === "complete") {
+
+        const correct =
+            document.getElementById(
+                "correctText"
+            );
+
+        question.correctText =
+            correct
+                ? correct.value.trim()
+                : "";
+
+    }
+
+}
+
+
+/* =====================================
+   CAMBIO DE TIPO DE PREGUNTA
+===================================== */
+
+document
+    .getElementById("questionType")
+    .addEventListener("change", e => {
+
+        if (
+            editingQuestion === null
+        ) {
+            return;
+        }
+
+        saveCurrentQuestion();
+
+        questions[editingQuestion].type =
+            e.target.value;
+
+        renderQuestionsList();
+
+        loadQuestion();
+
+    });
+
+
+/* =====================================
+   ELIMINAR PREGUNTA
+===================================== */
+
+document.addEventListener(
+    "click",
+    e => {
+
+        const button =
+            e.target.closest(
+                ".delete-question"
+            );
+
+        if (!button) return;
+
+        e.stopPropagation();
+
+        const index =
+            Number(button.dataset.index);
+
+        if (
+            !confirm(
+                "¿Seguro que quieres eliminar esta pregunta?"
+            )
+        ) {
+            return;
+        }
+
+        questions.splice(index, 1);
+
+        if (questions.length === 0) {
+
+            editingQuestion = null;
+
+        } else if (
+            editingQuestion >= questions.length
+        ) {
+
+            editingQuestion =
+                questions.length - 1;
+
+        }
+
+        renderQuestionsList();
+
+        if (
+            editingQuestion !== null
+        ) {
+            loadQuestion();
+        }
+
+    }
+);
+
+
+/* =====================================
+   GUARDAR CUESTIONARIO
+===================================== */
+
+document
+    .getElementById("saveQuestion")
+    .addEventListener("click", () => {
+
+        if (!currentQuiz) return;
+
+        saveCurrentQuestion();
+
+        currentQuiz.questions =
+            [...questions];
+
+        saveModules();
+
+        alert(
+            "Cuestionario guardado correctamente."
+        );
+
+        questionModal.classList.remove(
+            "active"
+        );
+
+        editingQuestion = null;
+
+        currentQuiz = null;
+
+        questions = [];
+
+        renderModules();
+
+    });
+
+
+/* =====================================
+   CERRAR CUESTIONARIO
+===================================== */
+
+closeQuestionModal
+    .addEventListener("click", () => {
+
+        questionModal.classList.remove(
+            "active"
+        );
+
+        editingQuestion = null;
+
+        currentQuiz = null;
+
+        questions = [];
+
+    });
+
+
+cancelQuestion
+    .addEventListener("click", () => {
+
+        questionModal.classList.remove(
+            "active"
+        );
+
+        editingQuestion = null;
+
+        currentQuiz = null;
+
+        questions = [];
+
+    });
+
+
+/* =====================================
+   GUARDAR ANTES DE CERRAR
+===================================== */
+
+questionModal.addEventListener(
+    "click",
+    e => {
+
+        if (e.target !== questionModal) {
+            return;
+        }
+
+        questionModal.classList.remove(
+            "active"
+        );
+
+        editingQuestion = null;
+
+        currentQuiz = null;
+
+        questions = [];
+
+    }
+);
+document.addEventListener("click", e => {
+
+    const button =
+        e.target.closest(".open-quiz-player");
+
+    if (!button) return;
+
+    e.stopPropagation();
+
+    const id =
+        Number(button.dataset.id);
+
+    const moduleCard =
+        button.closest(".module-card");
+
+    const moduleId =
+        Number(moduleCard.dataset.id);
+
+    const module =
+        modules.find(m => m.id === moduleId);
+
+    if (!module) return;
+
+    const quiz =
+        module.quizzes.find(
+            q => typeof q !== "string" && q.id === id
+        );
+
+    if (!quiz) return;
+
+    localStorage.setItem(
+        "oiQuiz",
+        JSON.stringify(quiz)
+    );
+
+    localStorage.setItem(
+        "oiQuiz",
+        JSON.stringify(quiz)
+    );
+
+    window.location.href =
+        "quiz-player.html";
 });

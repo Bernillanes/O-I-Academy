@@ -327,3 +327,345 @@
     }
 
 }
+/* =========================================
+   VIDEO PLAYER O-I ACADEMY
+========================================= */
+
+.video-page {
+
+    min-height:100vh;
+
+    padding:40px 25px 70px;
+
+    background:#F7FAFC;
+
+}
+
+
+.video-container {
+
+    width:100%;
+
+    max-width:1050px;
+
+    margin:0 auto;
+
+}
+
+
+.video-back {
+
+    border:none;
+
+    background:transparent;
+
+    color:#64748B;
+
+    font-family:'Poppins', sans-serif;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    margin-bottom:30px;
+
+}
+
+
+.video-back:hover {
+
+    color:#2FB8B5;
+
+}
+
+
+.video-header {
+
+    margin-bottom:25px;
+
+}
+
+
+.video-label {
+
+    color:#2FB8B5;
+
+    font-size:13px;
+
+    font-weight:700;
+
+    letter-spacing:1.5px;
+
+}
+
+
+.video-header h1 {
+
+    margin:7px 0 0;
+
+    color:#0F172A;
+
+    font-size:34px;
+
+}
+
+
+.video-card {
+
+    background:#FFFFFF;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+    box-shadow:0 12px 35px rgba(15,23,42,.08);
+
+}
+
+
+.video-wrapper {
+
+    position:relative;
+
+    width:100%;
+
+    aspect-ratio:16 / 9;
+
+    background:#000000;
+
+}
+
+
+.video-wrapper iframe {
+
+    position:absolute;
+
+    inset:0;
+
+    width:100%;
+
+    height:100%;
+
+    border:none;
+
+}
+
+
+.video-description {
+
+    margin-top:28px;
+
+    padding:28px;
+
+    background:#FFFFFF;
+
+    border-radius:18px;
+
+    border:1px solid #E5E7EB;
+
+}
+
+
+.video-description h2 {
+
+    margin:0 0 10px;
+
+    color:#0F172A;
+
+    font-size:21px;
+
+}
+
+
+.video-description p {
+
+    margin:0;
+
+    color:#64748B;
+
+    line-height:1.7;
+
+    font-size:15px;
+
+}
+
+
+.video-completion {
+
+    margin-top:25px;
+
+    padding:24px 28px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:25px;
+
+    background:#FFFFFF;
+
+    border:1px solid #E5E7EB;
+
+    border-radius:18px;
+
+}
+
+
+.video-completion > div {
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+}
+
+
+.video-completion > div > i {
+
+    color:#2FB8B5;
+
+    font-size:30px;
+
+}
+
+
+.video-completion h3 {
+
+    margin:0 0 4px;
+
+    color:#0F172A;
+
+    font-size:16px;
+
+}
+
+
+.video-completion p {
+
+    margin:0;
+
+    color:#64748B;
+
+    font-size:13px;
+
+}
+
+
+.mark-video {
+
+    border:none;
+
+    border-radius:10px;
+
+    padding:12px 20px;
+
+    background:#2FB8B5;
+
+    color:#FFFFFF;
+
+    font-family:'Poppins', sans-serif;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    white-space:nowrap;
+
+}
+
+
+.mark-video:hover {
+
+    background:#259F9D;
+
+}
+
+
+.mark-video.completed {
+
+    background:#15803D;
+
+}
+
+
+.video-error {
+
+    width:100%;
+
+    height:100%;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#FFFFFF;
+
+    gap:10px;
+
+}
+
+
+.video-error i {
+
+    font-size:40px;
+
+}
+
+
+.video-error p {
+
+    margin:0;
+
+}
+
+
+@media(max-width:700px) {
+
+    .video-page {
+
+        padding:25px 18px 50px;
+
+    }
+
+
+    .video-header h1 {
+
+        font-size:27px;
+
+    }
+
+
+    .video-completion {
+
+        flex-direction:column;
+
+        align-items:stretch;
+
+    }
+
+
+    .mark-video {
+
+        width:100%;
+
+    }
+
+}
